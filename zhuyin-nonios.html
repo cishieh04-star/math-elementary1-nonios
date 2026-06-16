@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天國八福注音遊戲</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; 
+            margin: 0; min-height: 100vh; background-color: #fdf6e3;
+            padding: 20px;
+        }
+        .card { 
+            width: 100%; max-width: 500px; 
+            background: white; padding: 20px; border-radius: 20px; 
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1); text-align: center; 
+        }
+        h1 { color: #5d4037; font-size: 1.5rem; margin: 10px 0; }
+        #full-sentence { font-size: 1.25rem; color: #8b4513; margin-bottom: 15px; font-weight: bold; }
+        .target-word { font-size: 5rem; color: #5d4037; margin: 10px 0; font-weight: bold; }
+        .zhuyin-slots { display: flex; gap: 10px; justify-content: center; margin: 20px 0; height: 60px; }
+        .slot { width: 60px; height: 60px; border: 3px dashed #8b4513; display: flex; align-items: center; justify-content: center; font-size: 2rem; border-radius: 12px; background: #fffdf0; }
+        .options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+        .btn { padding: 15px 5px; background: #fff; border: 3px solid #8b4513; cursor: pointer; font-size: 1.2rem; border-radius: 10px; font-weight: bold; touch-action: manipulation; }
+        .btn:hover { background: #ffe4b5; }
+        .btn-reset { background: #d32f2f; color: white; border-color: #b71c1c; }
+        .hint-text { margin-top: 20px; font-size: 1rem; color: #d32f2f; font-weight: bold; background: #ffebee; padding: 10px; border-radius: 8px; }
+        .nav-btn { padding: 15px 40px; background: #2e7d32; color: white; border: none; border-radius: 15px; font-size: 1.25rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="card" id="start-screen">
+    <h1>「天國八福」注音遊戲</h1>
+    <button class="nav-btn" onclick="startGame()">按此進入遊戲</button>
+</div>
+
+<div class="card" id="game-screen" style="display:none;">
+    <div id="full-sentence"></div>
+    <div class="target-word" id="char-display"></div>
+    <div class="zhuyin-slots" id="zhuyin-slots">
+        <div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+    </div>
+    <div class="options" id="options"></div>
+    <p class="hint-text">⚠️ 若已完成拼音，請按「空格」確認</p>
+</div>
+
+<script>
+    // 遊戲流程資料維持不變
+    const scriptFlow = [
+        { sentence: "虛心的人有福了，因為天國是他們的", char: "虛", components: ["ㄒ", "ㄩ", " ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "心", components: ["ㄒ", "ㄧ", "ㄣ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "的", components: ["ㄉ", "ㄜ", "˙", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "人", components: ["ㄖ", "ㄣ", "ˊ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "有", components: ["ㄧ", "ㄡ", "ˇ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "福", components: ["ㄈ", "ㄨ", "ˊ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "了", components: ["ㄌ", "ㄜ", "˙", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "因", components: ["ㄧ", "ㄣ", " ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "為", components: ["ㄨ", "ㄟ", "ˋ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "天", components: ["ㄊ", "ㄧ", "ㄢ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "國", components: ["ㄍ", "ㄨ", "ㄛ", "ˊ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "是", components: ["ㄕ", "ˋ", " ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "他", components: ["ㄊ", "ㄚ", " ", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "們", components: ["ㄇ", "ㄣ", "˙", " "] }, { sentence: "虛心的人有福了，因為天國是他們的", char: "的", components: ["ㄉ", "ㄜ", "˙", " "] },
+        { sentence: "哀慟的人有福了，因為他們必得安慰", char: "哀", components: ["ㄞ", " ", " ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "慟", components: ["ㄊ", "ㄨ", "ㄥ", "ˋ"] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "的", components: ["ㄉ", "ㄜ", "˙", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "人", components: ["ㄖ", "ㄣ", "ˊ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "有", components: ["ㄧ", "ㄡ", "ˇ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "福", components: ["ㄈ", "ㄨ", "ˊ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "了", components: ["ㄌ", "ㄜ", "˙", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "因", components: ["ㄧ", "ㄣ", " ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "為", components: ["ㄨ", "ㄟ", "ˋ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "他", components: ["ㄊ", "ㄚ", " ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "們", components: ["ㄇ", "ㄣ", "˙", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "必", components: ["ㄅ", "ㄧ", "ˋ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "得", components: ["ㄉ", "ㄜ", "ˊ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "安", components: ["ㄢ", " ", " ", " "] }, { sentence: "哀慟的人有福了，因為他們必得安慰", char: "慰", components: ["ㄨ", "ㄟ", "ˋ", " "] },
+        { sentence: "溫柔的人有福了，因為他們必承受地土", char: "溫", components: ["ㄨ", "ㄣ", " ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "柔", components: ["ㄖ", "ㄡ", "ˊ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "的", components: ["ㄉ", "ㄜ", "˙", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "人", components: ["ㄖ", "ㄣ", "ˊ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "有", components: ["ㄧ", "ㄡ", "ˇ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "福", components: ["ㄈ", "ㄨ", "ˊ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "了", components: ["ㄌ", "ㄜ", "˙", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "因", components: ["ㄧ", "ㄣ", " ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "為", components: ["ㄨ", "ㄟ", "ˋ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "他", components: ["ㄊ", "ㄚ", " ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "們", components: ["ㄇ", "ㄣ", "˙", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "必", components: ["ㄅ", "ㄧ", "ˋ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "承", components: ["ㄔ", "ㄥ", "ˊ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "受", components: ["ㄕ", "ㄡ", "ˋ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "地", components: ["ㄉ", "ㄧ", "ˋ", " "] }, { sentence: "溫柔的人有福了，因為他們必承受地土", char: "土", components: ["ㄊ", "ㄨ", "ˇ", " "] },
+        { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "飢", components: ["ㄐ", "ㄧ", " ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "渴", components: ["ㄎ", "ㄜ", "ˇ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "慕", components: ["ㄇ", "ㄨ", "ˋ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "義", components: ["ㄧ", "ˋ", " ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "的", components: ["ㄉ", "ㄜ", "˙", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "人", components: ["ㄖ", "ㄣ", "ˊ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "有", components: ["ㄧ", "ㄡ", "ˇ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "福", components: ["ㄈ", "ㄨ", "ˊ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "了", components: ["ㄌ", "ㄜ", "˙", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "因", components: ["ㄧ", "ㄣ", " ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "為", components: ["ㄨ", "ㄟ", "ˋ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "他", components: ["ㄊ", "ㄚ", " ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "們", components: ["ㄇ", "ㄣ", "˙", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "必", components: ["ㄅ", "ㄧ", "ˋ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "得", components: ["ㄉ", "ㄜ", "ˊ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "飽", components: ["ㄅ", "ㄠ", "ˇ", " "] }, { sentence: "飢渴慕義的人有福了，因為他們必得飽足", char: "足", components: ["ㄗ", "ㄨ", "ˊ", " "] }
+    ];
+    
+    let currentIdx = 0; let slotIdx = 0; let currentInput = ["", "", "", ""];
+
+    function startGame() { 
+        document.getElementById('start-screen').style.display = 'none'; 
+        document.getElementById('game-screen').style.display = 'block'; 
+        loadStep(); 
+    }
+    function speak(text) { 
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); 
+            const msg = new SpeechSynthesisUtterance(text); 
+            msg.lang = 'zh-TW'; 
+            window.speechSynthesis.speak(msg); 
+        }
+    }
+    function loadStep() { 
+        const item = scriptFlow[currentIdx]; 
+        document.getElementById('full-sentence').textContent = item.sentence; 
+        document.getElementById('char-display').textContent = item.char; 
+        resetInput(); 
+        renderButtons(); 
+        speak(item.char); 
+    }
+    function resetInput() { currentInput = ["", "", "", ""]; slotIdx = 0; updateSlots(); }
+    function renderButtons() {
+        const item = scriptFlow[currentIdx]; const optionsDiv = document.getElementById('options'); optionsDiv.innerHTML = '';
+        let ops = [...new Set([...item.components, " ", "ㄅ", "ㄚ", "ㄣ", "ㄧ"])]; ops.sort(() => Math.random() - 0.5);
+        ops.forEach(op => { const btn = document.createElement('button'); btn.className = 'btn'; btn.textContent = op === " " ? "空格" : op; btn.onclick = () => handleInput(op); optionsDiv.appendChild(btn); });
+        const resetBtn = document.createElement('button'); resetBtn.className = 'btn btn-reset'; resetBtn.textContent = "更正"; resetBtn.onclick = () => { speak("已更正"); resetInput(); }; optionsDiv.appendChild(resetBtn);
+    }
+    function handleInput(val) { if (slotIdx < 4) { currentInput[slotIdx] = val; updateSlots(); slotIdx++; if (slotIdx === 4) checkAnswer(); } }
+    function updateSlots() { const slots = document.querySelectorAll('.slot'); slots.forEach((s, i) => s.textContent = currentInput[i] === " " ? "＿" : currentInput[i]); }
+    function checkAnswer() {
+        const item = scriptFlow[currentIdx]; let correct = true; for(let i=0; i<4; i++) { if(currentInput[i] !== item.components[i]) correct = false; }
+        if (correct) { confetti(); speak("正確！"); setTimeout(nextStep, 1000); } else { speak("再試試看！"); setTimeout(resetInput, 800); }
+    }
+    function nextStep() { currentIdx++; if(currentIdx < scriptFlow.length) loadStep(); else { alert("恭喜完成所有天國八福練習！"); location.reload(); } }
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加法學習遊戲</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { 
+            font-family: sans-serif; text-align: center; 
+            background-color: #fffaf0; padding: 20px; margin: 0;
+            display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+        h1 { color: #333; font-size: 1.8rem; margin-bottom: 20px; }
+        .equation-container { 
+            display: flex; justify-content: center; align-items: center; 
+            font-size: 2.5rem; margin: 20px 0; flex-wrap: wrap; 
+        }
+        .num-wrapper { display: flex; flex-direction: column; align-items: center; margin: 0 10px; }
+        .dots-row { display: flex; flex-wrap: wrap; justify-content: center; width: 80px; margin-bottom: 5px; }
+        .dot { height: 12px; width: 12px; background-color: #4682b4; border-radius: 50%; margin: 2px; }
+        .box { 
+            width: 100px; height: 100px; border: 4px dashed #333; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            background: white; margin: 0 10px; border-radius: 10px; font-weight: bold; 
+        }
+        #options { 
+            display: flex; flex-wrap: wrap; justify-content: center; 
+            max-width: 600px; margin: 20px auto; 
+        }
+        .option { 
+            width: 70px; height: 70px; background: #FFD700; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; margin: 10px; font-weight: bold; font-size: 1.5rem; 
+            box-shadow: 2px 2px 5px #888; transition: transform 0.1s; 
+        }
+        .option:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+    <h1>請點選正確答案</h1>
+    <div id="gameArea" class="equation-container"></div>
+    <div id="options"></div>
+
+    <script>
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-TW';
+            window.speechSynthesis.speak(msg);
+        }
+
+        function createDots(n) {
+            let dots = '<div class="dots-row">';
+            for(let i=0; i<n; i++) dots += '<span class="dot"></span>';
+            dots += '</div>';
+            return dots;
+        }
+
+        let numA = Math.floor(Math.random() * 10) + 1;
+        let numB = Math.floor(Math.random() * 9) + 1;
+        let sum = numA + numB;
+
+        document.getElementById('gameArea').innerHTML = `
+            <div class="num-wrapper">${createDots(numA)}<div>${numA}</div></div>
+            +
+            <div class="num-wrapper">${createDots(numB)}<div>${numB}</div></div>
+            =
+            <div class="box" id="dropTarget">?</div>
+        `;
+
+        setTimeout(() => speak(`${numA} 加 ${numB} 等於多少？`), 500);
+
+        let options = [sum];
+        while(options.length < 6) {
+            let rand = Math.floor(Math.random() * 19) + 2;
+            if(!options.includes(rand)) options.push(rand);
+        }
+        options.sort(() => Math.random() - 0.5);
+
+        options.forEach(val => {
+            let div = document.createElement('div');
+            div.className = 'option';
+            div.innerText = val;
+            div.onclick = () => {
+                if (val == sum) {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    document.getElementById('dropTarget').innerHTML = `<div>${val}</div>${createDots(val)}`;
+                    speak(`沒錯！${numA} 加 ${numB} 等於 ${val}。`);
+                    setTimeout(() => location.reload(), 6000);
+                } else {
+                    speak("再算算看喔！");
+                }
+            };
+            document.getElementById('options').appendChild(div);
+        });
+    </script>
+</body>
+</html>
