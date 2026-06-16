@@ -5,21 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小一數學互動教學</title>
     <style>
-        * { box-sizing: border-box; touch-action: manipulation; }
         body { 
-            font-family: sans-serif; padding: 20px; max-width: 1000px; 
-            margin: auto; background-color: #fdf6e3; min-height: 100vh;
+            font-family: 'Microsoft JhengHei', sans-serif; 
+            padding: 20px; 
+            max-width: 1000px; 
+            margin: auto; 
+            background-color: #fdf6e3; 
+            min-height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .box {
-            padding: 15px; margin: 10px 0; border-radius: 15px;
-            font-weight: bold; text-align: center;
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 15px;
+            font-weight: bold; 
+            text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: flex; align-items: center; justify-content: center;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
         }
-        .header-box { background: #5d4037; color: #ffffff; font-size: 1.8rem; margin-bottom: 20px; }
-        .category-box { background: #ffe4b5; color: #5d4037; font-size: 1.2rem; width: fit-content; margin: 10px auto; padding: 10px 20px; }
-        ul { list-style-type: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .game-link { background: #2e7d32; color: #ffffff; font-size: 1.1rem; height: 80px; cursor: pointer; }
+        .header-box { 
+            background: #5d4037; 
+            color: #ffffff; 
+            font-size: 1.8rem; 
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px; 
+        }
+        .category-box { 
+            background: #ffe4b5; 
+            color: #5d4037; 
+            font-size: 1.2rem; 
+            padding: 10px 20px; 
+            margin-bottom: 30px;
+        }
+        
+        ul { 
+            list-style-type: none; 
+            padding: 0; 
+            width: 100%;
+            max-width: 600px;
+            display: grid; 
+            grid-template-columns: 1fr;
+            gap: 20px; 
+        }
+        
+        .game-link { 
+            background: #2e7d32; 
+            color: #ffffff; 
+            font-size: 1.3rem; 
+            height: 90px; 
+            cursor: pointer; 
+            transition: transform 0.2s, background 0.3s;
+        }
+        .game-link:hover { background: #388e3c; transform: scale(1.02); }
+        
         a { text-decoration: none; color: inherit; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
@@ -31,19 +74,20 @@
     <ul id="game-list"></ul>
 
     <script>
-        // 改用「./」開頭的相對路徑，這樣在 Mac 電腦和 GitHub 上都能讀取到同資料夾的檔案
         const games = [
             { name: "加法遊戲", file: "./addition-game-nonios.html" },
             { name: "九九乘法遊戲", file: "./timestable-nonios.html" },
             { name: "數學題目練習", file: "./interactivegame-nonios.html" },
             { name: "月曆小達人", file: "./month-day-nonios.html" },
-            { name: "天國八福注音遊戲", file: "./zhuyin-nonios.html" }
+            { name: "天國八福注音遊戲", file: "./zhuyin-nonios.html" },
+            { name: "看時鐘選答案", file: "./readclock-nonios.html" },
+            { name: "看時間，轉時鐘", file: "./setclock-nonios.html" }
         ];
 
         const listElement = document.getElementById('game-list');
         games.forEach(game => {
             const li = document.createElement('li');
-            li.innerHTML = '<div class="box game-link"><a href="' + game.file + '">' + game.name + '</a></div>';
+            li.innerHTML = `<div class="box game-link"><a href="${game.file}">${game.name}</a></div>`;
             listElement.appendChild(li);
         });
     </script>
