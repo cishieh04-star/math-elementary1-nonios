@@ -2,34 +2,38 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>九九乘法學習遊戲</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
-        * { box-sizing: border-box; touch-action: manipulation; }
+        /* 統一盒模型設定 */
+        * { box-sizing: border-box; }
         body { 
-            font-family: sans-serif; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             text-align: center; 
             background-color: #fdf5e6; 
             margin: 0; 
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 10px;
+            align-items: center;
+            padding: 20px;
         }
-        h1 { color: #333; font-size: 1.5rem; margin: 10px 0; }
+        h1 { color: #333; font-size: 2rem; margin: 20px 0; }
         
-        #startScreen { height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .start-btn { padding: 20px 40px; font-size: 24px; font-weight: bold; background-color: #ff7f50; color: white; border-radius: 20px; cursor: pointer; }
+        #startScreen { height: 80vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .start-btn { padding: 20px 50px; font-size: 28px; font-weight: bold; background-color: #ff7f50; color: white; border-radius: 50px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .start-btn:hover { transform: scale(1.05); }
 
-        #gameScreen { display: none; width: 100%; max-width: 600px; margin: 0 auto; }
-        .equation-container { display: flex; justify-content: center; align-items: center; font-size: 2rem; margin: 10px 0; font-weight: bold; }
-        .visual-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 10px; min-height: 100px; }
-        .group-box { border: 2px solid #ffa07a; border-radius: 8px; padding: 5px; display: grid; gap: 3px; background-color: #fff; }
-        .dot { height: 12px; width: 12px; background-color: #ff6347; border-radius: 50%; }
-        .box { width: 60px; height: 60px; border: 3px dashed #333; display: flex; align-items: center; justify-content: center; background: white; margin: 0 5px; border-radius: 10px; font-size: 1.5rem; }
-        #options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
-        .option { padding: 15px; background: #98fb98; border-radius: 10px; font-weight: bold; font-size: 1.5rem; cursor: pointer; }
+        #gameScreen { display: none; width: 100%; max-width: 800px; }
+        .equation-container { display: flex; justify-content: center; align-items: center; font-size: 3rem; margin: 20px 0; font-weight: bold; }
+        .visual-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .group-box { border: 2px solid #ffa07a; border-radius: 10px; padding: 10px; display: grid; gap: 5px; background-color: #fff; }
+        .dot { height: 15px; width: 15px; background-color: #ff6347; border-radius: 50%; }
+        .box { width: 80px; height: 80px; border: 4px dashed #333; display: flex; align-items: center; justify-content: center; background: white; margin: 0 15px; border-radius: 15px; font-size: 2rem; }
+        #options { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 15px; margin-top: 20px; width: 100%; }
+        .option { padding: 20px; background: #98fb98; border-radius: 15px; font-weight: bold; font-size: 1.8rem; cursor: pointer; transition: background 0.3s; }
+        .option:hover { background: #7cfc00; }
     </style>
 </head>
 <body>
@@ -45,13 +49,14 @@
         <div class="equation-container">
             <div id="numA"></div> × <div id="numB"></div> ＝ <div class="box" id="dropTarget">?</div>
         </div>
-        <div id="conceptText" style="color:#d2691e; font-weight:bold; margin-bottom:10px;"></div>
+        <div id="conceptText" style="color:#d2691e; font-size: 1.5rem; font-weight:bold; margin-bottom:20px;"></div>
         <div id="options"></div>
     </div>
 
     <script>
-        // 核心語音函數
+        // 跨平台語音函數優化
         function speak(text) {
+            if (!window.speechSynthesis) return;
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'zh-TW';
@@ -60,10 +65,8 @@
         }
 
         document.getElementById('startBtn').onclick = () => {
-            // Android 必須透過互動觸發語音引擎
-            const silent = new SpeechSynthesisUtterance("");
-            window.speechSynthesis.speak(silent);
-            
+            // 觸發音訊環境
+            speak("遊戲開始");
             document.getElementById('startScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'block';
             generateQuestion();
@@ -83,7 +86,6 @@
             document.getElementById('dropTarget').innerText = '?';
             document.getElementById('dropTarget').style.backgroundColor = 'white';
 
-            // 視覺點點生成
             let visualHTML = '';
             let cols = Math.ceil(Math.sqrt(numA)); 
             for(let i = 0; i < numB; i++) { 
@@ -93,10 +95,8 @@
             }
             document.getElementById('visualArea').innerHTML = visualHTML;
 
-            // 語音修正：使用「乘」字讓讀音更標準，避免機器人唸出怪怪的讀音
-            speak(`${numA} 乘以 ${numB}，等於多少呢？`);
+            speak(`${numA} 乘以 ${numB} 等於多少呢？`);
 
-            // 生成選項
             let options = [product];
             while(options.length < 6) {
                 let fakeAns = (Math.floor(Math.random() * 8) + 2) * (Math.floor(Math.random() * 8) + 2);
