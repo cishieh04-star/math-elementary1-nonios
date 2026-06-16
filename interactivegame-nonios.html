@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數學題目練習</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body { font-family: 'Microsoft JhengHei', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fdf6e3; margin: 0; min-height: 100vh; }
+        .container { width: 100%; max-width: 800px; text-align: center; }
+        
+        /* 垂直注音與漢字排版 */
+        .char-wrapper { display: inline-flex; align-items: center; margin: 5px; padding: 10px; background: white; border: 2px solid #8b4513; border-radius: 8px; cursor: pointer; }
+        .char { font-size: 32px; font-weight: bold; margin-right: 8px; }
+        .zhuyin-col { display: flex; flex-direction: column; font-size: 16px; color: #d35400; line-height: 1.2; text-align: center; }
+        
+        .slots-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 30px 0; min-height: 80px; }
+        .slot { width: 60px; height: 80px; border: 3px dashed #8b4513; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        
+        .word-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 30px; }
+        .hidden { visibility: hidden; }
+        .audio-btn { padding: 15px 40px; font-size: 20px; background: #ff69b4; color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px #c71585; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>數學題目練習</h2>
+    <button class="audio-btn" onclick="triggerSpeak()">🔊 聽題目</button>
+    <div id="slots" class="slots-container"></div>
+    <div id="word-pool" class="word-pool"></div>
+</div>
+
+<script>
+    const levels = [
+        { text: "有幾個已經跳出去了？", data: [{c:"有",z:"ㄧㄡˇ"},{c:"幾",z:"ㄐㄧˇ"},{c:"個",z:"˙ㄍㄜ"},{c:"已",z:"ㄧˇ"},{c:"經",z:"ㄐㄧㄥ"},{c:"跳",z:"ㄊㄧㄠˋ"},{c:"出",z:"ㄔㄨ"},{c:"去",z:"ㄑㄩˋ"},{c:"了",z:"˙ㄌㄜ"},{c:"？",z:""}] },
+        { text: "還剩下幾隻鳥？", data: [{c:"還",z:"ㄏㄞˊ"},{c:"剩",z:"ㄕㄥˋ"},{c:"下",z:"ㄒㄧㄚˋ"},{c:"幾",z:"ㄐㄧˇ"},{c:"隻",z:"ㄓ"},{c:"鳥",z:"ㄋㄧㄠˇ"},{c:"？",z:""}] }
+    ];
+
+    let currentLevel = 0;
+
+    function speakText(text) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'zh-TW';
+        window.speechSynthesis.speak(msg);
+    }
+
+    function triggerSpeak() { speakText(levels[currentLevel].text); }
+
+    function loadLevel() {
+        const slotsDiv = document.getElementById('slots');
+        const poolDiv = document.getElementById('word-pool');
+        slotsDiv.innerHTML = '';
+        poolDiv.innerHTML = '';
+        
+        levels[currentLevel].data.forEach(item => {
+            let slot = document.createElement('div');
+            slot.className = 'slot';
+            slot.dataset.char = item.c;
+            slotsDiv.appendChild(slot);
+        });
+
+        [...levels[currentLevel].data].sort(() => Math.random() - 0.5).forEach(item => {
+            let div = document.createElement('div');
+            div.className = 'char-wrapper';
+            // 垂直排列注音
+            let zhuyinHTML = item.z.split('').map(char => `<span>${char}</span>`).join('');
+            div.innerHTML = `<div class="char">${item.c}</div><div class="zhuyin-col">${zhuyinHTML}</div>`;
+            
+            div.onclick = function() {
+                let emptySlot = Array.from(document.querySelectorAll('.slot')).find(s => !s.innerHTML);
+                if (emptySlot && item.c === emptySlot.dataset.char) {
+                    emptySlot.innerHTML = div.innerHTML;
+                    div.style.visibility = 'hidden';
+                    if (!document.querySelector('.slot:empty')) {
+                        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                        speakText("太棒了！");
+                        setTimeout(() => { 
+                            currentLevel = (currentLevel + 1) % levels.length; 
+                            loadLevel(); 
+                        }, 2000);
+                    }
+                }
+            };
+            poolDiv.appendChild(div);
+        });
+    }
+    
+    loadLevel();
+</script>
+</body>
+</html>

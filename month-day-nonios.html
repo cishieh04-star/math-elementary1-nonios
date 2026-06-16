@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>月曆小達人</title>
+    <style>
+        body { font-family: 'Microsoft JhengHei', sans-serif; text-align: center; background-color: #fdf6e3; padding: 20px; margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 500px; }
+        
+        /* 表格優化，適應各種螢幕寬度 */
+        .calendar-table { border-collapse: collapse; margin: 20px auto; width: 100%; background: white; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .calendar-table td { border: 1px solid #333; height: 50px; width: 14.28%; font-weight: bold; font-size: 1.2rem; }
+        
+        #startBtn { padding: 20px 40px; font-size: 24px; background-color: #ff6347; color: white; border: none; border-radius: 15px; cursor: pointer; transition: transform 0.2s; }
+        #startBtn:hover { transform: scale(1.05); }
+        
+        .option-btn { padding: 15px 25px; margin: 8px; font-size: 1.2rem; cursor: pointer; border-radius: 10px; border: 2px solid #8b4513; background: white; transition: background 0.3s; }
+        .option-btn:hover { background: #ffe4c4; }
+        
+        .confetti { position: fixed; top: -10px; font-size: 2rem; pointer-events: none; animation: fall 3s linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>月曆小達人</h1>
+    <button id="startBtn" onclick="initGame()">開始遊戲</button>
+
+    <div id="gameArea" style="display:none;">
+        <table class="calendar-table" id="calendar"></table>
+        <div id="qBox" style="font-size: 1.8rem; margin: 20px 0; font-weight: bold; color: #5d4037;"></div>
+        <div id="optionsArea"></div>
+    </div>
+</div>
+
+<script>
+    const days = [null, null, null, null, null, null, 1, 2, null, 4, 5, 6, null, 8, 9, 10, null, null, 13, 14, 15, 16, 17, 18, 19, null, null, null, 23, 24, 25, 26, 27, 28, 29, 30, 31];
+    let correctAns = "";
+
+    function showConfetti() {
+        for (let i = 0; i < 20; i++) {
+            let div = document.createElement('div');
+            div.innerHTML = '🌸';
+            div.className = 'confetti';
+            div.style.left = Math.random() * 100 + 'vw';
+            div.style.animationDelay = Math.random() * 2 + 's';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 4000);
+        }
+    }
+
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'zh-TW';
+        window.speechSynthesis.speak(msg);
+    }
+
+    function initGame() {
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('gameArea').style.display = 'block';
+        
+        // 初始化月曆表格
+        let html = '<tr><td>日</td><td>一</td><td>二</td><td>三</td><td>四</td><td>五</td><td>六</td></tr><tr>';
+        days.forEach((d, i) => {
+            html += `<td style="color:${(i%7===0 || i%7===6)?'#ff4500':'#333'}">${d ? d : ''}</td>`;
+            if ((i + 1) % 7 === 0) html += '</tr><tr>';
+        });
+        document.getElementById('calendar').innerHTML = html + '</tr>';
+        document.getElementById('calendar').style.display = 'table';
+        
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        const pool = [
+            {q: "8月18日是星期幾呢？", a: "三"},
+            {q: "8月15日是星期幾呢？", a: "六"},
+            {q: "8月25日是星期幾呢？", a: "二"},
+            {q: "8月2日是星期幾呢？", a: "日"},
+            {q: "8月31日是星期幾呢？", a: "一"}
+        ];
+        let item = pool[Math.floor(Math.random() * pool.length)];
+        correctAns = item.a;
+        document.getElementById('qBox').innerText = item.q;
+        
+        const options = ["日", "一", "二", "三", "四", "五", "六"];
+        let html = '';
+        options.forEach(opt => {
+            html += `<button class="option-btn" onclick="checkAnswer('${opt}')">${opt}</button>`;
+        });
+        document.getElementById('optionsArea').innerHTML = html;
+        speak(item.q);
+    }
+
+    function checkAnswer(ans) {
+        if(ans === correctAns) {
+            showConfetti();
+            speak("太棒了，答對了！");
+            setTimeout(nextQuestion, 2000);
+        } else {
+            speak("再試試看喔！");
+        }
+    }
+</script>
+</body>
+</html>
