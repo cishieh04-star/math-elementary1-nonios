@@ -7,9 +7,12 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         body { font-family: 'Microsoft JhengHei', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #fdf6e3; margin: 0; min-height: 100vh; }
-        .container { width: 100%; max-width: 800px; text-align: center; }
         
-        /* 垂直注音與漢字排版 */
+        /* 開始按鈕層，用來解鎖 Android 音訊權限 */
+        #startScreen { position: fixed; top:0; left:0; width: 100%; height: 100%; background: #fdf6e3; z-index: 999; display: flex; align-items: center; justify-content: center; }
+        .start-btn { padding: 30px 60px; font-size: 24px; background: #ff69b4; color: white; border-radius: 20px; cursor: pointer; border: none; }
+
+        .container { width: 100%; max-width: 800px; text-align: center; }
         .char-wrapper { display: inline-flex; align-items: center; margin: 5px; padding: 10px; background: white; border: 2px solid #8b4513; border-radius: 8px; cursor: pointer; }
         .char { font-size: 32px; font-weight: bold; margin-right: 8px; }
         .zhuyin-col { display: flex; flex-direction: column; font-size: 16px; color: #d35400; line-height: 1.2; text-align: center; }
@@ -19,10 +22,14 @@
         
         .word-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 30px; }
         .hidden { visibility: hidden; }
-        .audio-btn { padding: 15px 40px; font-size: 20px; background: #ff69b4; color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px #c71585; }
+        .audio-btn { padding: 15px 40px; font-size: 20px; background: #ff69b4; color: white; border: none; border-radius: 12px; cursor: pointer; }
     </style>
 </head>
 <body>
+
+<div id="startScreen">
+    <button class="start-btn" onclick="initGame()">點擊開始遊戲</button>
+</div>
 
 <div class="container">
     <h2>數學題目練習</h2>
@@ -46,6 +53,11 @@
         window.speechSynthesis.speak(msg);
     }
 
+    function initGame() {
+        document.getElementById('startScreen').style.display = 'none';
+        loadLevel();
+    }
+
     function triggerSpeak() { speakText(levels[currentLevel].text); }
 
     function loadLevel() {
@@ -64,7 +76,6 @@
         [...levels[currentLevel].data].sort(() => Math.random() - 0.5).forEach(item => {
             let div = document.createElement('div');
             div.className = 'char-wrapper';
-            // 垂直排列注音
             let zhuyinHTML = item.z.split('').map(char => `<span>${char}</span>`).join('');
             div.innerHTML = `<div class="char">${item.c}</div><div class="zhuyin-col">${zhuyinHTML}</div>`;
             
@@ -85,9 +96,8 @@
             };
             poolDiv.appendChild(div);
         });
+        triggerSpeak();
     }
-    
-    loadLevel();
 </script>
 </body>
 </html>
